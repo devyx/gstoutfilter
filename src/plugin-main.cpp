@@ -39,6 +39,7 @@ typedef struct {
 	GstElement *appsrc;
 	uint8_t *request;
 	bool restart_pipeline;
+        bool rendered;
 
 	obs_video_info ovi;
 	obs_audio_info oai;
@@ -74,7 +75,7 @@ obs_properties_t *gst_out_filter_getproperties(void *)
 	obs_properties_add_text(
 		props, FLT_PROP_NAME,
 		"Pipeline",
-		OBS_TEXT_DEFAULT);
+		OBS_TEXT_MULTILINE);
 
 	obs_properties_add_button(
 		props, "gst_out_apply",
@@ -126,6 +127,11 @@ void gst_out_filter_offscreen_render(void *data, uint32_t, uint32_t)
 	if (!target) {
 		return;
 	}
+
+        if (f->rendered) {
+                return;
+        }
+        f->rendered = true;
 
 	uint32_t width = obs_source_get_base_width(target);
 	uint32_t height = obs_source_get_base_height(target);
@@ -327,6 +333,7 @@ void gst_out_filter_tick(void *data, float)
 {
 	auto f = (gst_out_filter_t *)data;
 	obs_get_video_info(&f->ovi);
+        f->rendered = false;
 }
 
 void gst_out_filter_videorender(void *data, gs_effect_t *)
